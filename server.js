@@ -2,6 +2,7 @@
 var path = require('path');
 var http = require('http');
 var server = http.createServer()
+var debug = false;
 
 // Define express server
 var express = require('express');
@@ -24,7 +25,7 @@ io.on('connection', function (socket) {
     var clientId = socket.id
    
     // Client connected
-    console.log(`Client ${clientId} has connected!`);
+    if(debug)console.log(`Client ${clientId} has connected!`);
 
     // Send the current board state
     serverState.forEach(function(item){
@@ -34,7 +35,7 @@ io.on('connection', function (socket) {
 
     // Client disconnected
     socket.on('disconnect', function () {
-        console.log(`Client ${clientId} has disconected :( `);
+        if(debug)console.log(`Client ${clientId} has disconected :( `);
     });
 
     // Event Listener
@@ -47,10 +48,10 @@ io.on('connection', function (socket) {
     });
 });
 
+var port = process.env.PORT || 1337
 
-
-server.listen(1337, function () {
-    console.log('The server is listening on port 1337!');
+server.listen(port, function () {
+    if(debug)console.log(`The server is listening on port ${port}}!`);
 });
 
 app.use(express.static(path.join(__dirname, 'browser')));
