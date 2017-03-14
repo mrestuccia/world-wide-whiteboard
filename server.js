@@ -19,10 +19,14 @@ var io = socketio(server);
 
 // Global application State. Better to have an object?
 var serverState = []
+var clients = [];
 
 // Sockets Events
 io.on('connection', function (socket) {
     var clientId = socket.id
+
+    // Add client to the list
+    clients.push(socket);
    
     // Client connected
     if(debug)console.log(`Client ${clientId} has connected!`);
@@ -35,7 +39,10 @@ io.on('connection', function (socket) {
 
     // Client disconnected
     socket.on('disconnect', function () {
-        if(debug)console.log(`Client ${clientId} has disconected :( `);
+        if(debug)console.log(`Client ${clientId} disconnected remove :( `);
+        
+        //remove the client
+        clients.splice(clients.indexOf(clientId),1)
     });
 
     // Event Listener
@@ -51,11 +58,25 @@ io.on('connection', function (socket) {
 var port = process.env.PORT || 1337
 
 server.listen(port, function () {
-    if(debug)console.log(`The server is listening on port ${port}}!`);
+    console.log(`The server is listening on port ${port}}!`);
 });
 
 app.use(express.static(path.join(__dirname, 'browser')));
 
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Erase board
+app.post('/', function (req, res) {
+    serverState = [];
+
+    clients.forEach((socket)=>{
+        console.log(`Sending reset signal to ${socket.id}}!`);
+        if (io.sockets.connected[socket.id]) {
+            io.sockets.connected[socket.id].emit('reset', '');
+        }
+    })
+
+    res.redirect('/');
 });
